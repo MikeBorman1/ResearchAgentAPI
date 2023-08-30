@@ -18,6 +18,7 @@ import json
 from langchain.schema import SystemMessage
 from fastapi import FastAPI
 
+
 load_dotenv()
 brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
@@ -199,9 +200,11 @@ class Query(BaseModel):
     query: str
 
 
-@app.post("/")
-def researchAgent( query: Query):
-    query = query.query
-    content = agent({"input": query})
-    actual_content = content['output']
-    return actual_content
+def researchAgent(query: Query):
+    try:
+        query = query.query
+        content = agent({"input": query})
+        actual_content = content['output']
+        return actual_content
+    except Exception as e:
+        raise str(e)
