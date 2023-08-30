@@ -202,7 +202,7 @@ app = FastAPI()
 class Query(BaseModel):
     query: str
 
-
+@app.post("/")
 def researchAgent(query: Query):
     try:
         query = query.query
