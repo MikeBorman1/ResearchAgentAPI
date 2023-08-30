@@ -163,8 +163,7 @@ content="""You are a world class researcher, who can do detailed research on any
             7/ Output as much information as possible, make sure your answer is at least 500 WORDS
             8/ Be specific about your reasearch, do not just point to a website and say things can be found here, that what you are for
             
-            ALWAYS USE YOUR TOOLS AVAILABLE FIRST
-            Make sure to always look for information on in web through your tools
+            Only Scrape for a few sites, if you deem you have enough information please return as this is time sensative.
 
             Example of what NOT to do return these are just a summary of whats on the website an nothing specific, these tell the user nothing!!
 
@@ -189,8 +188,10 @@ agent = initialize_agent(
     agent=AgentType.OPENAI_FUNCTIONS,
     verbose=True,
     agent_kwargs=agent_kwargs,
+    max_iterations=3,
     memory=memory,
 )
+
 
 
 
@@ -205,8 +206,9 @@ class Query(BaseModel):
 def researchAgent(query: Query):
     try:
         query = query.query
-        content = agent({"input": query})
+        content = agent({"input": "your research objective is objective:" + query})
         actual_content = content['output']
         return actual_content
     except Exception as e:
         raise str(e)
+        
