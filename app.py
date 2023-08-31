@@ -188,7 +188,7 @@ agent = initialize_agent(
     agent=AgentType.OPENAI_FUNCTIONS,
     verbose=True,
     agent_kwargs=agent_kwargs,
-    max_iterations=3,
+    max_iterations=5,
     memory=memory,
 )
 
