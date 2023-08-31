@@ -189,6 +189,7 @@ agent = initialize_agent(
     verbose=True,
     agent_kwargs=agent_kwargs,
     max_iterations=5,
+    early_stopping_method="generate",
     memory=memory,
 )
 
