@@ -204,6 +204,8 @@ agent = initialize_agent(
     agent_kwargs=agent_kwargs,
     max_iterations=4,
     early_stopping_method="generate",
+    max_iterations=5,
+    early_stopping_method="generate",
     memory=memory,
 )
 
