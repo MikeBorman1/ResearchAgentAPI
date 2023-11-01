@@ -1,10 +1,10 @@
 beautifulsoup4==4.12.2
 fastapi==0.101.1
-langchain==0.0.266
-pydantic
+langchain==0.0.326
+pydantic==2.4.2
 python-dotenv==1.0.0
 Requests
 requests_oauthlib
 uvicorn
-openai
+openai==0.28.1
 tiktoken
