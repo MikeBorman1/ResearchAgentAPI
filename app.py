@@ -25,6 +25,8 @@ serper_api_key = os.getenv("SERP_API_KEY")
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
 # 1. Tool for search
+
+
 def search(query):
     url = "https://google.serper.dev/search"
 
