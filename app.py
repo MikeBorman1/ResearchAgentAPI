@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-from langchain.prompts import PromptTemplate
+from langchain import PromptTemplate
 from langchain.agents import initialize_agent, Tool
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
@@ -17,12 +17,11 @@ import requests
 import json
 from langchain.schema import SystemMessage
 from fastapi import FastAPI
-import re
+
 
 load_dotenv()
 brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
-openai_api_key = os.getenv('OPENAI_API_KEY')
 
 # 1. Tool for search
 
@@ -45,23 +44,6 @@ def search(query):
 
     return response.text
 
-def get_html(data, headers) -> BeautifulSoup:
-    if isinstance(data, dict):
-        # Convert Python object to JSON string
-        data = json.dumps(data)
-
-    # Send the POST request
-    post_url = f"https://chrome.browserless.io/content?token={brwoserless_api_key}"
-    response = requests.post(post_url, headers=headers, data=data)
-
-    # Check the response status code
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, "html.parser")
-        for script in soup(["script", "style"]):
-            script.decompose() 
-        return soup
-    else:
-        print(f"HTTP request failed with status code {response.status_code}")
 
 # 2. Tool for scraping
 def scrape_website(objective: str, url: str):
@@ -80,27 +62,34 @@ def scrape_website(objective: str, url: str):
         "url": url
     }
 
-    # Extract main page of website
-    main_page = get_html(data, headers)
-    text = main_page.get_text()
+    # Convert Python object to JSON string
+    data_json = json.dumps(data)
 
-    # Clean scrapped text
-    text = re.sub(r'\n+', '\n', text)
-    text = re.sub(r'\t+', '', text)
+    # Send the POST request
+    post_url = f"https://chrome.browserless.io/content?token={brwoserless_api_key}"
+    response = requests.post(post_url, headers=headers, data=data_json)
     
-    if len(text) > 10000:
-        output = summary(objective, text)        
-        return output
+    # Check the response status code
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, "html.parser")
+        for script in soup(["script", "style"]):
+            script.decompose()
+        text = soup.get_text()
+        print("CONTENTTTTTT:", text)
+
+        if len(text) > 10000:
+            output = summary(objective, text)
+            
+            return output
+        else:
+            return text
     else:
-        return text
+        print(f"HTTP request failed with status code {response.status_code}")
 
 
 
 def summary(objective, content):
-    llm = ChatOpenAI(temperature=0,
-                     model="gpt-3.5-turbo",
-                     openai_api_key=openai_api_key,
-                     request_timeout=120)
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500)
@@ -189,10 +178,7 @@ agent_kwargs = {
     "system_message": system_message,
 }
 
-llm = ChatOpenAI(temperature=0,
-                 model="gpt-3.5-turbo-16k-0613",
-                 openai_api_key=openai_api_key,
-                 request_timeout=120)
+llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
 memory = ConversationSummaryBufferMemory(
     memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000)
 
@@ -204,13 +190,13 @@ agent = initialize_agent(
     agent_kwargs=agent_kwargs,
     max_iterations=4,
     early_stopping_method="generate",
-    max_iterations=5,
-    early_stopping_method="generate",
     memory=memory,
 )
 
-# 5. Set this as an API endpoint via FastAPI
 
+
+
+# 5. Set this as an API endpoint via FastAPI
 app = FastAPI()
 
 
@@ -226,4 +212,3 @@ def researchAgent(query: Query):
         return actual_content
     except Exception as e:
         raise str(e)
-        
