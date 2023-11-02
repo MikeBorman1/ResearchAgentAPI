@@ -194,12 +194,7 @@ agent = initialize_agent(
 )
 
 
-query = "Latest AI news"
-content = agent({"input": "your research objective is objective:" + query})
-actual_content = content['output']
-print(actual_content)
 
-"""
 # 5. Set this as an API endpoint via FastAPI
 app = FastAPI()
 
@@ -216,5 +211,3 @@ def researchAgent(query: Query):
         return actual_content
     except Exception as e:
         raise str(e)
-
-"""
