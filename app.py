@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.agents import initialize_agent, Tool
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
@@ -89,7 +89,7 @@ def scrape_website(objective: str, url: str):
 
 
 def summary(objective, content):
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500)
@@ -194,8 +194,12 @@ agent = initialize_agent(
 )
 
 
+query = "Latest AI news"
+content = agent({"input": "your research objective is objective:" + query})
+actual_content = content['output']
+print(actual_content)
 
-
+"""
 # 5. Set this as an API endpoint via FastAPI
 app = FastAPI()
 
@@ -212,3 +216,5 @@ def researchAgent(query: Query):
         return actual_content
     except Exception as e:
         raise str(e)
+
+"""
