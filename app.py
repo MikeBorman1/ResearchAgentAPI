@@ -77,7 +77,7 @@ def scrape_website(objective: str, url: str):
         text = soup.get_text()
         print("CONTENTTTTTT:", text)
 
-        if len(text) > 10000:
+        if len(text) > 20000:
             output = summary(objective, text)
             
             return output
@@ -89,10 +89,10 @@ def scrape_website(objective: str, url: str):
 
 
 def summary(objective, content):
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k")
 
     text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500)
+        separators=["\n\n", "\n"], chunk_size=5000)
     docs = text_splitter.create_documents([content])
     map_prompt = """
     Extract the key information for the following text for {objective}. The text is Scraped data from a website so 
@@ -180,7 +180,7 @@ agent_kwargs = {
 
 llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
 memory = ConversationSummaryBufferMemory(
-    memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000)
+    memory_key="memory", return_messages=True, llm=llm, max_token_limit=5000)
 
 agent = initialize_agent(
     tools,
@@ -188,7 +188,7 @@ agent = initialize_agent(
     agent=AgentType.OPENAI_FUNCTIONS,
     verbose=True,
     agent_kwargs=agent_kwargs,
-    max_iterations=4,
+    max_iterations=3,
     early_stopping_method="generate",
     memory=memory,
 )
