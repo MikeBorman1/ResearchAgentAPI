@@ -1,14 +1,12 @@
 import os
 from dotenv import load_dotenv
-
+from langchain.chains import LLMChain
 from langchain import PromptTemplate
 from langchain.agents import initialize_agent, Tool
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import MessagesPlaceholder
 from langchain.memory import ConversationSummaryBufferMemory
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains.summarize import load_summarize_chain
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
 from typing import Type
@@ -102,14 +100,13 @@ def summary(objective, content):
                      openai_api_key=openai_api_key,
                      request_timeout=120)
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n"], chunk_size=10000, chunk_overlap=500)
-    docs = text_splitter.create_documents([content])
+    
     map_prompt = """
     Extract the key information for the following text for {objective}. The text is Scraped data from a website so 
     will have a lot of usless information that doesnt relate to this topic, links, other news stories etc.. 
     Only summarise the relevant Info and try to keep as much factual information Intact
-    Do not describe what the webpage is, you are here to get acurate and specific information
+    Do not describe what the webpage is, you are here to get acurate and specific information.
+    Include as much content from the site as possible.
     Example of what NOT to do: "Investor's Business Daily: Investor's Business Daily provides news and trends on AI stocks and artificial intelligence. They cover the latest updates on AI stocks and the trends in artificial intelligence. You can stay updated on AI stocks and trends at [AI News: Artificial Intelligence Trends And Top AI Stocks To Watch "
     Here is the text:
 
@@ -119,15 +116,14 @@ def summary(objective, content):
     map_prompt_template = PromptTemplate(
         template=map_prompt, input_variables=["text", "objective"])
 
-    summary_chain = load_summarize_chain(
+    llm_chain = LLMChain(
         llm=llm,
-        chain_type='map_reduce',
-        map_prompt=map_prompt_template,
-        combine_prompt=map_prompt_template,
-        verbose=True
+        prompt=map_prompt_template,
+        verbose=True,
+        
     )
 
-    output = summary_chain.run(input_documents=docs, objective=objective)
+    output = llm_chain.run(text=content, objective=objective)
 
     return output
 
@@ -194,7 +190,7 @@ llm = ChatOpenAI(temperature=0,
                  openai_api_key=openai_api_key,
                  request_timeout=120)
 memory = ConversationSummaryBufferMemory(
-    memory_key="memory", return_messages=True, llm=llm, max_token_limit=1000)
+    memory_key="memory", return_messages=True, llm=llm, max_token_limit=8000)
 
 agent = initialize_agent(
     tools,
@@ -206,6 +202,7 @@ agent = initialize_agent(
     early_stopping_method="generate",
     memory=memory,
 )
+
 
 # 5. Set this as an API endpoint via FastAPI
 app = FastAPI()
@@ -223,4 +220,4 @@ def researchAgent(query: Query):
         return actual_content
     except Exception as e:
         raise str(e)
-        
+       
