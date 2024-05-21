@@ -18,7 +18,6 @@ from fastapi import FastAPI
 
 
 load_dotenv()
-brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
 
 # 1. Tool for search
@@ -49,23 +48,9 @@ def scrape_website(objective: str, url: str):
     # objective is the original objective & task that user give to the agent, url is the url of the website to be scraped
 
     print("Scraping website...")
-    # Define the headers for the request
-    headers = {
-        'Cache-Control': 'no-cache',
-        'Content-Type': 'application/json',
-    }
 
-    # Define the data to be sent in the request
-    data = {
-        "url": url
-    }
-
-    # Convert Python object to JSON string
-    data_json = json.dumps(data)
-
-    # Send the POST request
-    post_url = f"https://chrome.browserless.io/content?token={brwoserless_api_key}"
-    response = requests.post(post_url, headers=headers, data=data_json)
+    # Getting website content
+    response = requests.get(url)
     
     # Check the response status code
     if response.status_code == 200:
