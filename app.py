@@ -52,6 +52,9 @@ def scrape_website(objective: str, url: str):
     # Getting website content
     response = requests.get(url)
     
+    if 'text' not in response.headers.get('content-type'):
+        return "Not a text file. Cannot scrape this website."
+    
     # Check the response status code
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, "html.parser")
@@ -146,6 +149,8 @@ content="""You are a world class researcher, who can do detailed research on any
             8/ Be specific about your reasearch, do not just point to a website and say things can be found here, that what you are for
             
             Only Scrape for a few sites, if you deem you have enough information please return as this is time sensative.
+            
+            Do not scrape pdf links.
 
             Example of what NOT to do return these are just a summary of whats on the website an nothing specific, these tell the user nothing!!
 
@@ -160,7 +165,7 @@ agent_kwargs = {
     "system_message": system_message,
 }
 
-llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
+llm = ChatOpenAI(temperature=0, model="gpt-4o")
 memory = ConversationSummaryBufferMemory(
     memory_key="memory", return_messages=True, llm=llm, max_token_limit=8000)
 
@@ -192,4 +197,8 @@ def researchAgent(query: Query):
         return actual_content
     except Exception as e:
         raise str(e)
+    
+    
+if __name__ == "__main__":
+    researchAgent(Query(query="Weed legalization in new York"))
        
